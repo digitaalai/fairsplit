@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FairSplit — Eerlijke kostenplanner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#FAFAF8; --surface:#FFFFFF; --slate:#2D3142; --slate-lt:#5A5F7A;
+  --sage:#7B9E87; --sage-lt:#EBF2ED; --coral:#E8907A; --coral-lt:#FDF0ED;
+  --gold:#D4A84B; --gold-lt:#FBF5E6;
+  --p1:#4A7FA5; --p1-lt:#EBF3FA; --p2:#A5674A; --p2-lt:#FAF0EB;
+  --border:#E8E8E4; --radius:12px; --shadow:0 2px 12px rgba(45,49,66,0.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--slate);min-height:100vh;font-size:15px;}
+.logo-fair{font-family:'DM Sans',sans-serif;font-weight:600;color:white;}
+.logo-share{font-family:'DM Serif Display',serif;font-weight:400;color:var(--sage);letter-spacing:-0.01em;}
+
+.lang-bar{background:var(--slate);display:flex;justify-content:flex-end;padding:6px 20px;gap:4px;}
+.lang-btn{background:transparent;border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.6);padding:3px 10px;border-radius:20px;cursor:pointer;font-size:0.72rem;font-weight:600;letter-spacing:0.05em;transition:all 0.15s;}
+.lang-btn.active{background:white;color:var(--slate);}
+
+header{background:var(--slate);color:white;padding:14px 24px 10px;}
+.header-inner{max-width:640px;margin:0 auto;}
+.logo{font-size:1.5rem;font-weight:700;letter-spacing:-0.01em;margin-bottom:2px;}
+.tagline{font-size:0.78rem;color:rgba(255,255,255,0.55);line-height:1.4;}
+
+.meter-wrap{background:var(--slate);padding:0 24px 12px;}
+.meter-inner{max-width:640px;margin:0 auto;}
+.meter-label{display:flex;justify-content:space-between;font-size:0.7rem;color:rgba(255,255,255,0.45);margin-bottom:6px;}
+.meter-track{height:8px;background:rgba(255,255,255,0.12);border-radius:4px;position:relative;}
+.meter-fill{height:100%;border-radius:4px;transition:width 0.5s cubic-bezier(.4,0,.2,1),background 0.5s;overflow:hidden;border-radius:4px;}
+.meter-center{position:absolute;top:-2px;width:2px;height:12px;background:white;transform:translateX(-50%);border-radius:1px;transition:left 0.4s cubic-bezier(.4,0,.2,1);}
+.meter-verdict{text-align:center;font-size:0.75rem;color:rgba(255,255,255,0.5);margin-top:6px;min-height:18px;transition:color 0.3s;}
+
+.sticky{position:sticky;top:0;z-index:100;background:white;border-bottom:1px solid var(--border);box-shadow:var(--shadow);}
+.sticky-inner{max-width:640px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;}
+.sticky-col{padding:10px 12px;text-align:center;border-right:1px solid var(--border);}
+.sticky-col:last-child{border-right:none;}
+.sticky-label{font-size:0.62rem;color:var(--slate-lt);text-transform:uppercase;letter-spacing:0.06em;}
+.sticky-val{font-size:1rem;font-weight:700;margin-top:1px;}
+
+main{max-width:640px;margin:0 auto;padding:20px 16px 60px;}
+
+.onboard{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:20px;margin-bottom:20px;box-shadow:var(--shadow);}
+.onboard-title{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--sage);margin-bottom:14px;}
+.partner-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.field-group{display:flex;flex-direction:column;gap:4px;}
+.field-group label{font-size:0.72rem;color:var(--slate-lt);font-weight:500;}
+.field-group input{border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:0.88rem;font-family:inherit;color:var(--slate);background:var(--bg);transition:border-color 0.15s;outline:none;}
+.field-group input:focus{border-color:var(--sage);background:white;}
+.field-group input.p1{border-color:var(--p1);}
+.field-group input.p2{border-color:var(--p2);}
+.ratio-display{margin-top:14px;background:var(--sage-lt);border-radius:8px;padding:10px 14px;font-size:0.78rem;color:var(--slate);line-height:1.6;}
+.ratio-bars{display:flex;height:6px;border-radius:3px;overflow:hidden;margin-top:8px;gap:2px;}
+.ratio-bar-p1{background:var(--p1);border-radius:3px;transition:flex 0.4s;}
+.ratio-bar-p2{background:var(--p2);border-radius:3px;transition:flex 0.4s;}
+
+.add-section{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.section-head{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--slate-lt);}
+.add-btn{display:flex;align-items:center;gap:5px;background:var(--sage);color:white;border:none;border-radius:20px;padding:6px 14px;font-size:0.75rem;font-weight:600;cursor:pointer;transition:background 0.15s;}
+.add-btn:hover{background:#6a8f76;}
+
+/* Category accordion for quick-add */
+.cat-accordion{margin-bottom:16px;display:flex;flex-direction:column;gap:6px;}
+.cat-group{}
+.cat-group-header{display:flex;align-items:center;padding:8px 12px;background:white;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:0.78rem;font-weight:600;color:var(--slate-lt);transition:all 0.15s;user-select:none;gap:0;}
+.cat-group-header:hover{border-color:var(--sage);color:var(--sage);}
+.cat-group-header.open{border-color:var(--sage);color:var(--sage);border-bottom-left-radius:0;border-bottom-right-radius:0;background:var(--sage-lt);}
+.cat-group-header .cat-label{flex:1;}
+.cat-group-header .arrow{font-size:0.7rem;transition:transform 0.2s;flex-shrink:0;width:16px;text-align:center;}
+.cat-group-header.open .arrow{transform:rotate(90deg);}
+.cat-count{background:var(--sage);color:white;font-size:0.62rem;font-weight:700;padding:1px 7px;border-radius:10px;flex-shrink:0;min-width:22px;text-align:center;margin-right:6px;}
+.cat-group-subs{display:none;flex-wrap:wrap;gap:5px;padding:10px 12px;background:var(--sage-lt);border:1.5px solid var(--sage);border-top:none;border-bottom-left-radius:8px;border-bottom-right-radius:8px;}
+.cat-group-subs.open{display:flex;}
+.sub-chip{padding:5px 12px;border-radius:20px;font-size:0.72rem;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:white;color:var(--slate-lt);transition:all 0.12s;}
+.sub-chip:hover{border-color:var(--sage);color:var(--sage);background:white;}
+.sub-chip.added{border-color:var(--sage);color:var(--sage);background:var(--sage-lt);position:relative;}
+.sub-chip.added::after{content:attr(data-tooltip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--slate);color:rgba(255,255,255,0.85);font-size:0.62rem;padding:4px 8px;border-radius:6px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity 0.2s;z-index:10;font-weight:400;}
+.sub-chip.added:hover::after{opacity:0.75;}
+
+/* Items */
+.item{background:var(--surface);border-radius:var(--radius);border:1.5px solid var(--border);margin-bottom:8px;padding:14px;transition:border-color 0.2s;}
+.item.who-p1{border-color:var(--p1);}
+.item.who-p2{border-color:var(--p2);}
+.item.who-both{border-color:var(--sage);}
+.item-top{display:flex;align-items:flex-start;gap:10px;}
+.item-main{flex:1;}
+.item-name-row{display:flex;align-items:center;gap:8px;}
+.item-name{font-size:0.9rem;font-weight:600;flex:1;border:none;outline:none;background:transparent;font-family:inherit;color:var(--slate);padding:0;}
+.item-name::placeholder{color:#CCC;}
+.item-badge{display:flex;gap:4px;flex-shrink:0;}
+.badge{font-size:0.62rem;background:var(--sage-lt);color:var(--sage);padding:2px 7px;border-radius:8px;font-weight:600;white-space:nowrap;}
+.badge.sub{background:var(--gold-lt);color:var(--gold);}
+.item-amount-row{display:flex;align-items:center;gap:8px;margin-top:8px;}
+.currency{font-size:0.85rem;color:var(--slate-lt);}
+.item-amount{width:100px;border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;font-size:0.88rem;font-weight:600;text-align:right;font-family:inherit;color:var(--slate);background:white;outline:none;transition:border-color 0.15s;}
+.item-amount:focus{border-color:var(--sage);}
+.period-select{border:1.5px solid var(--border);border-radius:8px;padding:6px 8px;font-size:0.75rem;font-family:inherit;color:var(--slate-lt);background:white;outline:none;cursor:pointer;}
+.delete-btn{background:none;border:none;color:#DDD;cursor:pointer;font-size:1.1rem;padding:2px 4px;transition:color 0.15s;}
+.delete-btn:hover{color:var(--coral);}
+
+.who-row{display:flex;gap:6px;margin-top:10px;}
+.who-btn{flex:1;padding:7px 4px;border:1.5px solid var(--border);border-radius:8px;background:white;cursor:pointer;font-size:0.72rem;font-weight:600;color:#AAA;text-align:center;transition:all 0.15s;}
+.who-btn.active-p1{background:var(--p1-lt);border-color:var(--p1);color:var(--p1);}
+.who-btn.active-p2{background:var(--p2-lt);border-color:var(--p2);color:var(--p2);}
+.who-btn.active-both{background:var(--sage-lt);border-color:var(--sage);color:var(--sage);}
+
+/* Results */
+.result{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-top:24px;box-shadow:var(--shadow);}
+.result-head{background:var(--slate);color:white;padding:14px 18px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;}
+.result-row{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid var(--border);font-size:0.84rem;}
+.result-row:last-child{border-bottom:none;}
+.result-row .rv{font-weight:600;}
+.result-row.hl{background:var(--sage-lt);}
+.result-row.warn{background:var(--coral-lt);}
+.result-row.warn .rv{color:var(--coral);}
+.result-row.ok{background:var(--sage-lt);}
+.result-row.ok .rv{color:var(--sage);}
+.result-row.total{background:var(--gold-lt);font-weight:700;font-size:0.95rem;justify-content:space-between;}
+.result-row.total .rv{color:var(--gold);font-size:1.1rem;text-align:right;}
+
+.empty{text-align:center;padding:40px 20px;color:var(--slate-lt);}
+.empty-icon{font-size:2.5rem;margin-bottom:10px;}
+.empty-msg{font-size:0.84rem;line-height:1.6;}
+
+/* Items grouped by category */
+.items-group{margin-bottom:4px;}
+.items-group-label{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--slate-lt);padding:10px 2px 4px;}
+
+/* Flash animation for newly added item */
+@keyframes flashGreen{
+  0%{background:#C8E6C9;}
+  100%{background:var(--surface);}
+}
+@keyframes flashGreenBorder{
+  0%{background:#C8E6C9;border-color:#4CAF50;}
+  100%{background:var(--surface);border-color:var(--sage);}
+}
+.item.flash{animation:flashGreen 1s ease-out forwards;}
+.item.who-both.flash{animation:flashGreenBorder 1s ease-out forwards;}
+.item.who-p1.flash{animation:flashGreenBorder 1s ease-out forwards;}
+.item.who-p2.flash{animation:flashGreenBorder 1s ease-out forwards;}
+
+/* Custom sub input inside accordion */
+.custom-sub-row{display:flex;gap:6px;padding:8px 12px 10px;border-top:1px solid rgba(123,158,135,0.2);margin-top:4px;}
+.custom-sub-input{flex:1;border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;font-size:0.78rem;font-family:inherit;color:var(--slate);background:white;outline:none;transition:border-color 0.15s;}
+.custom-sub-input:focus{border-color:var(--sage);}
+.custom-sub-add{background:var(--sage);color:white;border:none;border-radius:8px;padding:6px 12px;font-size:0.75rem;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;}
+.custom-sub-add:hover{background:#6a8f76;}
+
+/* Privacy note on intro */
+.privacy-note{background:#F0F4FF;border-radius:10px;padding:12px 16px;font-size:0.75rem;color:#3a4a7a;line-height:1.6;margin-top:10px;margin-bottom:28px;border-left:3px solid #7B9AC8;}
+.privacy-note strong{color:#3a4a7a;}
+
+@media(max-width:480px){
+  .partner-grid{grid-template-columns:1fr;}
+  .sticky-inner{grid-template-columns:1fr 1fr;}
+  .sticky-col:nth-child(2){border-right:none;}
+  .sticky-col:nth-child(3){border-top:1px solid var(--border);}
+  .sticky-col:nth-child(4){border-top:1px solid var(--border);border-right:none;}
+}
+
+/* ── Intro overlay ───────────────────────────────── */
+.intro-overlay{position:fixed;inset:0;z-index:200;background:var(--bg);overflow-y:auto;display:flex;flex-direction:column;}
+.intro-overlay.hidden{display:none;}
+.intro-header{background:var(--slate);color:white;padding:44px 28px 32px;text-align:center;}
+.intro-logo{font-size:2.6rem;margin-bottom:10px;}
+.intro-tagline{font-size:0.88rem;color:rgba(255,255,255,0.6);line-height:1.7;max-width:320px;margin:0 auto;}
+.intro-body{max-width:520px;margin:0 auto;padding:28px 20px 48px;}
+.intro-section-title{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--sage);margin-bottom:14px;}
+.intro-steps{display:flex;flex-direction:column;gap:14px;margin-bottom:24px;}
+.intro-step{display:flex;gap:14px;align-items:flex-start;background:white;border-radius:10px;padding:14px;border:1px solid var(--border);}
+.step-num{width:30px;height:30px;border-radius:50%;background:var(--sage);color:white;font-weight:700;font-size:0.82rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.step-text h3{font-size:0.88rem;font-weight:700;margin-bottom:3px;}
+.step-text p{font-size:0.76rem;color:var(--slate-lt);line-height:1.5;}
+.intro-note{background:var(--sage-lt);border-radius:10px;padding:14px 16px;font-size:0.78rem;color:var(--slate);line-height:1.6;margin-bottom:20px;}
+.intro-note strong{color:var(--sage);}
+.intro-start-btn{width:100%;padding:15px;background:var(--sage);color:white;border:none;border-radius:12px;font-family:'Montserrat',sans-serif;font-size:1rem;font-weight:800;cursor:pointer;letter-spacing:0.01em;transition:background 0.15s;}
+.intro-start-btn:hover{background:#6a8f76;}
+.help-btn{background:none;border:1.5px solid rgba(255,255,255,0.3);color:rgba(255,255,255,0.7);padding:4px 12px;border-radius:20px;cursor:pointer;font-size:0.72rem;font-weight:600;transition:all 0.15s;font-family:'DM Sans',sans-serif;margin-top:10px;}
+.help-btn:hover{background:rgba(255,255,255,0.1);color:white;}
+</style>
+</head>
+<body>
+
+<!-- Intro overlay -->
+<div class="intro-overlay" id="intro-overlay">
+  <div class="intro-header">
+    <div class="intro-logo"><span class="logo-fair">Fair</span><span class="logo-share">Split</span></div>
+    <div class="intro-tagline" id="it-tagline">Bereken eerlijk wie wat bijdraagt — op basis van wat jullie verdienen.</div>
+  </div>
+  <div class="intro-body">
+    <div class="intro-section-title" id="it-how">Hoe werkt het?</div>
+    <div class="intro-steps">
+      <div class="intro-step"><div class="step-num">1</div><div class="step-text"><h3 id="is1h">Vul jullie inkomens in</h3><p id="is1p">Voer de netto maandinkomens in van beide partners. FairSplit berekent automatisch wie welk percentage draagt.</p></div></div>
+      <div class="intro-step"><div class="step-num">2</div><div class="step-text"><h3 id="is2h">Voeg kostenposten toe</h3><p id="is2p">Kies een categorie, klik op een subcategorie en de post wordt direct toegevoegd met een standaardbedrag.</p></div></div>
+      <div class="intro-step"><div class="step-num">3</div><div class="step-text"><h3 id="is3h">Kies wie betaalt</h3><p id="is3p">Stel per post in of het een gezamenlijke kost is, of dat één van beiden betaalt. De meter past live aan.</p></div></div>
+      <div class="intro-step"><div class="step-num">4</div><div class="step-text"><h3 id="is4h">Zie het verschil</h3><p id="is4p">De eerlijkheidsmeter en samenvatting laten direct zien wie te veel of te weinig bijdraagt — en hoeveel.</p></div></div>
+    </div>
+    <div class="intro-note"><strong id="it-note-lbl">Tip:</strong> <span id="it-note-txt">Alles wordt automatisch opgeslagen. Je kunt de app sluiten en later verdergaan waar je gebleven was.</span></div>
+    <div class="privacy-note"><strong id="it-priv-lbl">🔒 Privacy:</strong> <span id="it-priv-txt">Alle gegevens blijven op jouw apparaat. Er wordt niets verstuurd of opgeslagen in de cloud. Wis je browsergeschiedenis niet, anders verdwijnen je gegevens.</span></div>
+    <button class="intro-start-btn" id="it-start" onclick="closeIntro()">Aan de slag →</button>
+    <div style="text-align:center;margin-top:20px;font-size:0.75rem;color:var(--slate-lt);line-height:1.8;">
+      <span id="it-made">Gemaakt door</span> <strong style="color:var(--slate);">DigiTaal</strong><br>
+      <a href="https://www.instagram.com/digitaal.ai" target="_blank" rel="noopener"
+        style="color:var(--sage);font-weight:600;text-decoration:none;font-size:0.78rem;">
+        @digitaal.ai
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="lang-bar">
+  <select id="currency-select" onchange="setCurrency(this.value)" style="background:transparent;border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.7);padding:3px 8px;border-radius:20px;font-size:0.72rem;font-weight:600;cursor:pointer;margin-right:2px;font-family:inherit;">
+    <option value="€">€ EUR</option>
+    <option value="£">£ GBP</option>
+    <option value="$">$ USD</option>
+    <option value="Fr">Fr CHF</option>
+    <option value="kr">kr SEK/NOK</option>
+    <option value="custom">✏️ Eigen...</option>
+  </select>
+  <input id="currency-custom" type="text" maxlength="3" placeholder="bv. ₹" oninput="setCurrency(this.value)" style="display:none;width:48px;background:transparent;border:1px solid rgba(255,255,255,0.25);color:white;padding:3px 8px;border-radius:20px;font-size:0.72rem;font-weight:600;font-family:inherit;outline:none;margin-right:6px;">
+  <button class="lang-btn active" onclick="setLang('nl')">NL</button>
+  <button class="lang-btn" onclick="setLang('en')">EN</button>
+</div>
+
+<header>
+  <div class="header-inner">
+    <div class="logo"><span class="logo-fair">Fair</span><span class="logo-share">Split</span></div>
+    <div class="tagline" id="tag"></div>
+    <button class="help-btn" id="help-btn" onclick="openIntro()" style="margin-top:10px;">? <span id="hb-lbl">Uitleg</span></button>
+  </div>
+</header>
+<div class="meter-wrap">
+  <div class="meter-inner">
+    <div class="meter-label"><span id="ml-p1"></span><span id="ml-p2"></span></div>
+    <div class="meter-track">
+      <div class="meter-fill" id="meter-fill" style="width:50%;background:var(--sage)"></div>
+      <div class="meter-center" id="meter-center" style="left:50%"></div>
+    </div>
+    <div class="meter-verdict" id="meter-verdict"></div>
+  </div>
+</div>
+
+<div class="sticky">
+  <div class="sticky-inner">
+    <div class="sticky-col"><div class="sticky-label" id="sl-p1">P1</div><div class="sticky-val" id="bar-p1" style="color:var(--p1)">€0</div></div>
+    <div class="sticky-col"><div class="sticky-label" id="sl-p2">P2</div><div class="sticky-val" id="bar-p2" style="color:var(--p2)">€0</div></div>
+    <div class="sticky-col"><div class="sticky-label" id="sl-total">Totaaluitgaven</div><div class="sticky-val" id="bar-total">€0</div></div>
+    <div class="sticky-col"><div class="sticky-label" id="sl-diff">Verschil</div><div class="sticky-val" id="bar-diff" style="color:var(--coral)">€0</div></div>
+  </div>
+</div>
+
+<main>
+  <div class="onboard">
+    <div class="onboard-title" id="ob-title">Jullie situatie</div>
+    <div class="partner-grid">
+      <div class="field-group"><label id="lbl-n1">Naam partner 1</label><input id="name1" type="text" placeholder="bv. Anna" class="p1" oninput="save();update()"></div>
+      <div class="field-group"><label id="lbl-n2">Naam partner 2</label><input id="name2" type="text" placeholder="bv. Bas" class="p2" oninput="save();update()"></div>
+      <div class="field-group"><label id="lbl-i1">Netto inkomen / mnd</label><input id="inc1" type="number" placeholder="€ 0" min="0" class="p1" oninput="save();update()"></div>
+      <div class="field-group"><label id="lbl-i2">Netto inkomen / mnd</label><input id="inc2" type="number" placeholder="€ 0" min="0" class="p2" oninput="save();update()"></div>
+    </div>
+    <div class="ratio-display">
+      <span id="ratio-txt"></span>
+      <div class="ratio-bars" id="ratio-bars" style="display:none">
+        <div class="ratio-bar-p1" id="rbar1" style="flex:1"></div>
+        <div class="ratio-bar-p2" id="rbar2" style="flex:1"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="add-section">
+    <div class="section-head" id="sh-costs">Kosten</div>
+    <button id="accordion-toggle" onclick="toggleAccordionPanel()" style="background:none;border:1.5px solid var(--border);border-radius:20px;padding:4px 12px;font-size:0.72rem;font-weight:600;color:var(--slate-lt);cursor:pointer;font-family:inherit;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--sage)';this.style.color='var(--sage)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--slate-lt)'">＋ <span id="accordion-toggle-lbl">Toevoegen</span></button>
+  </div>
+
+  <div class="cat-accordion" id="cat-accordion" style="display:none"></div>
+  <div id="items-container"></div>
+
+  <div class="result" id="result-block" style="display:none">
+    <div class="result-head" id="res-title">Samenvatting</div>
+    <div class="result-row hl"><span id="rl-total">Totaal</span><span class="rv" id="r-total">€0</span></div>
+    <div class="result-row"><span id="rl-share1"></span><span class="rv" id="r-share1">€0</span></div>
+    <div class="result-row"><span id="rl-share2"></span><span class="rv" id="r-share2">€0</span></div>
+    <div class="result-row"><span id="rl-pays1"></span><span class="rv" id="r-pays1" style="color:var(--p1)">€0</span></div>
+    <div class="result-row"><span id="rl-pays2"></span><span class="rv" id="r-pays2" style="color:var(--p2)">€0</span></div>
+    <div class="result-row warn" id="row-warn"><span id="rl-extra"></span><span class="rv" id="r-extra">€0</span></div>
+    <div class="result-row total"><span id="rl-suggestion"></span><span class="rv" id="r-suggestion">—</span></div>
+  </div>
+
+  <div id="share-block" style="display:none;margin-top:10px;margin-bottom:24px;">
+    <button onclick="shareSummary()" style="width:100%;padding:13px;background:var(--slate);color:white;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;transition:background 0.15s;display:flex;align-items:center;justify-content:center;gap:8px;" onmouseover="this.style.background='#3d4260'" onmouseout="this.style.background='var(--slate)'">
+      <span id="share-icon">📋</span> <span id="share-lbl">Kopieer samenvatting</span>
+    </button>
+    <div id="share-confirm" style="display:none;text-align:center;font-size:0.75rem;color:var(--sage);margin-top:6px;font-weight:600;"></div>
+  </div>
+</main>
+
+<script>
+// ── Category taxonomy (two levels) ────────────────────────────────────────
+const TAXONOMY = {
+  nl: [
+    { cat:"🏠 Wonen", subs:[
+      {name:"Huur / Hypotheek", amount:1200},
+      {name:"Energie (gas, stroom, water)", amount:175},
+      {name:"Internet & televisie", amount:65},
+      {name:"Schoonmaak / werkster", amount:175},
+      {name:"Glazenwasser", amount:33},
+      {name:"Onderhoud & reparaties", amount:150},
+      {name:"Tuin", amount:50},
+    ]},
+    { cat:"🛡️ Verzekeringen", subs:[
+      {name:"Zorgverzekering", amount:150},
+      {name:"Levensverzekering", amount:100},
+      {name:"Woonverzekering", amount:40},
+      {name:"Autoverzekering", amount:60},
+      {name:"Fietsverzekering", amount:10},
+      {name:"Reisverzekering", amount:15},
+      {name:"Aansprakelijkheidsverzekering", amount:10},
+    ]},
+    { cat:"🛒 Boodschappen", subs:[
+      {name:"Supermarkt", amount:500},
+      {name:"Bezorgdienst (Picnic, HelloFresh)", amount:150},
+      {name:"Slager / speciaalzaak", amount:50},
+      {name:"Drogisterij", amount:40},
+    ]},
+    { cat:"🚗 Vervoer", subs:[
+      {name:"Brandstof", amount:120},
+      {name:"Wegenbelasting", amount:50},
+      {name:"OV-abonnement", amount:100},
+      {name:"Parkeren", amount:40},
+      {name:"Auto onderhoud & APK", amount:60},
+      {name:"Fiets onderhoud", amount:15},
+    ]},
+    { cat:"👨‍👩‍👧 Kinderen", subs:[
+      {name:"Kinderopvang / BSO", amount:800},
+      {name:"Zakgeld", amount:50},
+      {name:"Kleding kinderen", amount:80},
+      {name:"Sport & hobby's kinderen", amount:60},
+      {name:"Schoolkosten", amount:30},
+      {name:"Bijdrage studie / kamer", amount:200},
+      {name:"Luiers & babyspullen", amount:80},
+    ]},
+    { cat:"🏥 Gezondheid", subs:[
+      {name:"Eigen risico zorg", amount:50},
+      {name:"Medicijnen", amount:20},
+      {name:"Tandarts", amount:30},
+      {name:"Fysiotherapie / behandelingen", amount:80},
+      {name:"Brillen & lenzen", amount:20},
+      {name:"Sportschool / fitness", amount:40},
+    ]},
+    { cat:"✈️ Vrije tijd", subs:[
+      {name:"Vakantie", amount:300},
+      {name:"Dagjes uit", amount:60},
+      {name:"Cadeaus & feestdagen", amount:80},
+      {name:"Abonnementen (Netflix, Spotify)", amount:30},
+      {name:"Restaurants & uit eten", amount:100},
+      {name:"Hobby's", amount:50},
+    ]},
+    { cat:"➕ Overig", subs:[
+      {name:"Huisdieren", amount:80},
+      {name:"Gezamenlijke spaarrekening", amount:200},
+      {name:"Kleding volwassenen", amount:60},
+      {name:"Persoonlijke verzorging", amount:30},
+      {name:"Donaties / lidmaatschappen", amount:20},
+    ]},
+  ],
+  en: [
+    { cat:"🏠 Housing", subs:[
+      {name:"Rent / Mortgage", amount:1200},
+      {name:"Energy (gas, electricity, water)", amount:175},
+      {name:"Internet & TV", amount:65},
+      {name:"Cleaning / housekeeper", amount:175},
+      {name:"Window cleaner", amount:33},
+      {name:"Maintenance & repairs", amount:150},
+      {name:"Garden", amount:50},
+    ]},
+    { cat:"🛡️ Insurance", subs:[
+      {name:"Health insurance", amount:150},
+      {name:"Life insurance", amount:100},
+      {name:"Home insurance", amount:40},
+      {name:"Car insurance", amount:60},
+      {name:"Bicycle insurance", amount:10},
+      {name:"Travel insurance", amount:15},
+      {name:"Liability insurance", amount:10},
+    ]},
+    { cat:"🛒 Groceries", subs:[
+      {name:"Supermarket", amount:500},
+      {name:"Delivery service", amount:150},
+      {name:"Butcher / speciality shop", amount:50},
+      {name:"Drugstore / pharmacy", amount:40},
+    ]},
+    { cat:"🚗 Transport", subs:[
+      {name:"Fuel", amount:120},
+      {name:"Road tax", amount:50},
+      {name:"Public transport", amount:100},
+      {name:"Parking", amount:40},
+      {name:"Car maintenance & MOT", amount:60},
+      {name:"Bicycle maintenance", amount:15},
+    ]},
+    { cat:"👨‍👩‍👧 Children", subs:[
+      {name:"Childcare / after-school", amount:800},
+      {name:"Pocket money", amount:50},
+      {name:"Children's clothing", amount:80},
+      {name:"Sports & hobbies", amount:60},
+      {name:"School costs", amount:30},
+      {name:"Student support", amount:200},
+      {name:"Nappies & baby supplies", amount:80},
+    ]},
+    { cat:"🏥 Health", subs:[
+      {name:"Deductible / excess", amount:50},
+      {name:"Medication", amount:20},
+      {name:"Dentist", amount:30},
+      {name:"Physiotherapy / treatments", amount:80},
+      {name:"Glasses & contact lenses", amount:20},
+      {name:"Gym / fitness", amount:40},
+    ]},
+    { cat:"✈️ Leisure", subs:[
+      {name:"Holidays", amount:300},
+      {name:"Days out", amount:60},
+      {name:"Gifts & celebrations", amount:80},
+      {name:"Subscriptions (Netflix, Spotify)", amount:30},
+      {name:"Restaurants & dining out", amount:100},
+      {name:"Hobbies", amount:50},
+    ]},
+    { cat:"➕ Other", subs:[
+      {name:"Pets", amount:80},
+      {name:"Joint savings", amount:200},
+      {name:"Adult clothing", amount:60},
+      {name:"Personal care", amount:30},
+      {name:"Donations / memberships", amount:20},
+    ]},
+  ]
+};
+
+// ── i18n strings ──────────────────────────────────────────────────────────
+const T = {
+  nl:{
+    tag:"Bereken eerlijk wie wat bijdraagt, op basis van jullie inkomen.",
+    "ob-title":"Jullie situatie","lbl-n1":"Naam partner 1","lbl-n2":"Naam partner 2",
+    "lbl-i1":"Netto inkomen / mnd","lbl-i2":"Netto inkomen / mnd",
+    "sh-costs":"Kosten","add-lbl":"Toevoegen","res-title":"Samenvatting",
+    "sl-total":"Totaal","sl-diff":"Verschil",
+    "rl-total":"Totaal gezamenlijke kosten",
+    "rl-share1":"Eerlijk aandeel {{p1}} ({{pct1}}%)","rl-share2":"Eerlijk aandeel {{p2}} ({{pct2}}%)",
+    "rl-pays1":"{{p1}} betaalt nu","rl-pays2":"{{p2}} betaalt nu",
+    "rl-extra":"{{name}} betaalt te weinig","rl-suggestion":"Suggestie aanpassing maandbijdrage",
+    verdict:{fair:"✓ Verdeling is eerlijk",low1:"{{p1}} draagt te weinig bij",low2:"{{p2}} draagt te weinig bij"},
+    ratio:"Op basis van inkomen: {{p1}} {{pct1}}% — {{p2}} {{pct2}}%",
+    "ratio-empty":"Vul inkomens in om de eerlijke verdeling te berekenen.",
+    empty:"Kies een categorie hieronder om een post toe te voegen →",
+    suggestion:"{{name}} betaalt {{amt}}/mnd extra",
+    together:"Samen","month":"/ mnd","week":"/ week","year":"/ jaar",
+    "cat-label":"Categorie","subcat-label":"Subcategorie",
+  },
+  en:{
+    tag:"Calculate fairly who contributes what, based on your income.",
+    "ob-title":"Your situation","lbl-n1":"Partner 1 name","lbl-n2":"Partner 2 name",
+    "lbl-i1":"Net income / month","lbl-i2":"Net income / month",
+    "sh-costs":"Costs","add-lbl":"Add","res-title":"Summary",
+    "sl-total":"Total","sl-diff":"Gap",
+    "rl-total":"Total shared costs",
+    "rl-share1":"Fair share of {{p1}} ({{pct1}}%)","rl-share2":"Fair share of {{p2}} ({{pct2}}%)",
+    "rl-pays1":"{{p1}} currently pays","rl-pays2":"{{p2}} currently pays",
+    "rl-extra":"{{name}} pays too little","rl-suggestion":"Suggested monthly adjustment",
+    verdict:{fair:"✓ Split is fair",low1:"{{p1}} underpays",low2:"{{p2}} underpays"},
+    ratio:"Based on income: {{p1}} {{pct1}}% — {{p2}} {{pct2}}%",
+    "ratio-empty":"Enter incomes to calculate a fair split.",
+    empty:"Choose a category below to add a cost →",
+    suggestion:"{{name}} pays {{amt}}/month extra",
+    together:"Together","month":"/ month","week":"/ week","year":"/ year",
+    "cat-label":"Category","subcat-label":"Subcategory",
+  }
+};
+
+let lang = 'nl';
+let currency = '€';
+
+function t(key, vars){
+  let s = T[lang][key] || key;
+  if(vars) Object.entries(vars).forEach(([k,v])=>{ s=s.replaceAll('{{'+k+'}}',v); });
+  return s;
+}
+// Category name translation map NL ↔ EN
+const CAT_MAP = {
+  nl2en:{
+    '🏠 Wonen':'🏠 Housing','🛡️ Verzekeringen':'🛡️ Insurance','🛒 Boodschappen':'🛒 Groceries',
+    '🚗 Vervoer':'🚗 Transport','👨‍👩‍👧 Kinderen':'👨‍👩‍👧 Children','🏥 Gezondheid':'🏥 Health',
+    '✈️ Vrije tijd':'✈️ Leisure','➕ Overig':'➕ Other'
+  },
+  en2nl:{
+    '🏠 Housing':'🏠 Wonen','🛡️ Insurance':'🛡️ Verzekeringen','🛒 Groceries':'🛒 Boodschappen',
+    '🚗 Transport':'🚗 Vervoer','👨‍👩‍👧 Children':'👨‍👩‍👧 Kinderen','🏥 Health':'🏥 Gezondheid',
+    '✈️ Leisure':'✈️ Vrije tijd','➕ Other':'➕ Overig'
+  }
+};
+
+// Build sub name map from taxonomy
+function buildSubMap(fromLang, toLang){
+  const map={};
+  const from=TAXONOMY[fromLang], to=TAXONOMY[toLang];
+  from.forEach((cat,ci)=>{
+    cat.subs.forEach((sub,si)=>{
+      if(to[ci]&&to[ci].subs[si]) map[sub.name]=to[ci].subs[si].name;
+    });
+  });
+  return map;
+}
+
+function setLang(l){
+  const catMap = l==='en' ? CAT_MAP.nl2en : CAT_MAP.en2nl;
+  const subMap = buildSubMap(l==='en'?'nl':'en', l);
+  items.forEach(item=>{
+    if(catMap[item.cat]) item.cat=catMap[item.cat];
+    if(subMap[item.name]){ item.name=subMap[item.name]; item.subcat=subMap[item.subcat]||item.subcat; }
+  });
+  lang=l;
+  save(); // persist translated names before re-render
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent===l.toUpperCase()));
+  renderAll();
+}
+function setCurrency(c){
+  const customEl=document.getElementById('currency-custom');
+  const selectEl=document.getElementById('currency-select');
+  if(c==='custom'){
+    customEl.style.display='inline-block';
+    customEl.focus();
+    // don't update currency yet — wait for user to type
+  } else if(selectEl&&selectEl.value==='custom'){
+    // typing in custom field — only update if non-empty
+    if(c.trim()) { currency=c.trim(); save(); update(); }
+  } else {
+    customEl.style.display='none';
+    customEl.value='';
+    currency=c||'€';
+    save(); update();
+  }
+}
+
+// ── State ─────────────────────────────────────────────────────────────────
+let items=[], uid=1, openCatIdx=null;
+
+function loadState(){
+  try{
+    const s=localStorage.getItem('fairshare_v2');
+    if(!s) return;
+    const d=JSON.parse(s);
+    document.getElementById('name1').value=d.name1||'';
+    document.getElementById('name2').value=d.name2||'';
+    document.getElementById('inc1').value=d.inc1||'';
+    document.getElementById('inc2').value=d.inc2||'';
+    items=d.items||[]; uid=d.uid||1; lang=d.lang||'nl';
+    currency=d.currency||'€';
+    const cs=document.getElementById('currency-select');
+    const standardValues=['€','£','$','Fr','kr'];
+    if(cs){
+      if(standardValues.includes(currency)){
+        cs.value=currency;
+      } else {
+        cs.value='custom';
+        const customEl=document.getElementById('currency-custom');
+        if(customEl){ customEl.value=currency; customEl.style.display='inline-block'; }
+      }
+    }
+    document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent===lang.toUpperCase()));
+  }catch(e){}
+}
+function save(){
+  try{
+    localStorage.setItem('fairshare_v2',JSON.stringify({
+      name1:document.getElementById('name1').value,
+      name2:document.getElementById('name2').value,
+      inc1:document.getElementById('inc1').value,
+      inc2:document.getElementById('inc2').value,
+      items,uid,lang,currency
+    }));
+  }catch(e){}
+}
+
+function names(){ return { p1:document.getElementById('name1').value.trim()||'Partner 1', p2:document.getElementById('name2').value.trim()||'Partner 2' }; }
+function incomes(){ return { i1:parseFloat(document.getElementById('inc1').value)||0, i2:parseFloat(document.getElementById('inc2').value)||0 }; }
+function ratios(){ const{i1,i2}=incomes(); const tot=i1+i2; if(!tot) return{r1:0.5,r2:0.5,pct1:50,pct2:50}; return{r1:i1/tot,r2:i2/tot,pct1:Math.round(i1/tot*100),pct2:Math.round(i2/tot*100)}; }
+function toMonthly(a,p){ if(p==='week') return a*4.33; if(p==='year') return a/12; return a; }
+function fmt(n){ return currency+Math.round(Math.abs(n)).toLocaleString(lang==='nl'?'nl-NL':'en-GB'); }
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── Item management ───────────────────────────────────────────────────────
+function addItem(name='', amount=0, who='both', cat='', subcat=''){
+  const newId = uid++;
+  items.push({id:newId,name,amount,period:'month',who,cat,subcat});
+  save(); renderItems(); update();
+  // flash the newly added item
+  const el = document.querySelector(`.item[data-id="${newId}"]`);
+  if(el){ el.classList.add('flash'); setTimeout(()=>el.classList.remove('flash'),900); }
+}
+function addFromSub(catIdx, subIdx){
+  const taxonomy=TAXONOMY[lang];
+  const cat=taxonomy[catIdx];
+  const sub=cat.subs[subIdx];
+  addItem(sub.name, sub.amount, 'both', cat.cat, sub.name);
+  renderAccordion(); // update checkmarks immediately
+}
+function addCustomSub(catIdx){
+  const inp=document.getElementById('custom-input-'+catIdx);
+  const name=(inp?inp.value.trim():'');
+  if(!name) return;
+  const cat=TAXONOMY[lang][catIdx].cat;
+  addItem(name, 0, 'both', cat, name);
+  inp.value='';
+  renderAccordion();
+}
+function deleteItem(id){ items=items.filter(i=>i.id!==id); save(); renderItems(); update(); }
+function updateItem(id,field,value){ const item=items.find(i=>i.id===id); if(item){item[field]=value;save();update();} }
+function toggleWho(id,who){ const item=items.find(i=>i.id===id); if(item){item.who=who;save();renderItems();update();} }
+
+// ── Render accordion ──────────────────────────────────────────────────────
+function renderAccordion(){
+  const taxonomy=TAXONOMY[lang];
+  const acc=document.getElementById('cat-accordion');
+  acc.innerHTML='';
+  const addedNames=new Set(items.map(i=>i.name));
+  // also count items per category (incl. custom ones)
+  const catCounts={};
+  items.forEach(i=>{ catCounts[i.cat]=(catCounts[i.cat]||0)+1; });
+
+  taxonomy.forEach((cat,ci)=>{
+    const grp=document.createElement('div');
+    grp.className='cat-group';
+    const isOpen=openCatIdx===ci;
+
+    // count: standard subs ticked + any custom items in this cat
+    const stdTicked=cat.subs.filter(s=>addedNames.has(s.name)).length;
+    const totalInCat=catCounts[cat.cat]||0;
+    const countTotal=Math.max(stdTicked,totalInCat);
+    const countBadge = countTotal>0&&!isOpen
+      ? `<span class="cat-count">${countTotal}</span>`
+      : '';
+
+    const subsHtml=cat.subs.map((s,si)=>{
+      const already=addedNames.has(s.name);
+      const tooltip=lang==='nl'?'Al toegevoegd — wijzig of verwijder in de lijst':'Already added — edit or remove in the list below';
+      return `<button class="sub-chip ${already?'added':''}" ${already?`data-tooltip="${tooltip}"`:''}  onclick="addFromSub(${ci},${si})">${already?'✓ ':''}${escHtml(s.name)}</button>`;
+    }).join('');
+
+    const customRow=`
+      <div style="width:100%;height:1px;background:rgba(123,158,135,0.25);margin:4px 0;"></div>
+      <div class="custom-sub-row">
+        <input class="custom-sub-input" type="text" id="custom-input-${ci}" placeholder="${lang==='nl'?'Eigen post toevoegen...':'Add custom item...'}" onkeydown="if(event.key==='Enter')addCustomSub(${ci})">
+        <button class="custom-sub-add" onclick="addCustomSub(${ci})">＋</button>
+      </div>`;
+
+    grp.innerHTML=`
+      <div class="cat-group-header ${isOpen?'open':''}" onclick="toggleAccordion(${ci})">
+        <span class="cat-label">${escHtml(cat.cat)}</span>${countBadge}<span class="arrow">›</span>
+      </div>
+      <div class="cat-group-subs ${isOpen?'open':''}">${subsHtml}${customRow}</div>
+    `;
+    acc.appendChild(grp);
+  });
+}
+function toggleAccordionPanel(){
+  const acc=document.getElementById('cat-accordion');
+  const btn=document.getElementById('accordion-toggle-lbl');
+  const isOpen=acc.style.display!=='none';
+  acc.style.display=isOpen?'none':'flex';
+  btn.textContent=isOpen
+    ? (lang==='nl'?'Toevoegen':'Add')
+    : (lang==='nl'?'Verbergen':'Hide');
+}
+function toggleAccordion(ci){
+  openCatIdx = openCatIdx===ci ? null : ci;
+  renderAccordion();
+}
+
+// ── Render items grouped by category ─────────────────────────────────────
+function renderItems(){
+  const{p1,p2}=names();
+  const container=document.getElementById('items-container');
+  if(!items.length){
+    container.innerHTML=`<div class="empty"><div class="empty-icon">💰</div><div class="empty-msg">${t('empty')}</div></div>`;
+    return;
+  }
+  // group by cat
+  const groups={};
+  items.forEach(item=>{
+    const key=item.cat||'—';
+    if(!groups[key]) groups[key]=[];
+    groups[key].push(item);
+  });
+  container.innerHTML='';
+  Object.entries(groups).forEach(([catName,gitems])=>{
+    const grpDiv=document.createElement('div');
+    grpDiv.className='items-group';
+    grpDiv.innerHTML=`<div class="items-group-label">${escHtml(catName)}</div>`;
+    gitems.forEach(item=>{
+      const whoClass=item.who==='both'?'who-both':item.who==='p1'?'who-p1':'who-p2';
+      const div=document.createElement('div');
+      div.className=`item ${whoClass}`;
+      div.dataset.id=item.id;
+      div.innerHTML=`
+        <div class="item-top">
+          <div class="item-main">
+            <div class="item-name-row">
+              <input class="item-name" type="text" value="${escHtml(item.name)}" placeholder="..."
+                oninput="updateItem(${item.id},'name',this.value)">
+            </div>
+            <div class="item-amount-row">
+              <span class="currency">${currency}</span>
+              <input class="item-amount" type="number" min="0" value="${item.amount||''}" placeholder="0"
+                oninput="updateItem(${item.id},'amount',parseFloat(this.value)||0)">
+              <select class="period-select" onchange="updateItem(${item.id},'period',this.value)">
+                <option value="month" ${item.period==='month'?'selected':''}>${t('month')}</option>
+                <option value="week"  ${item.period==='week' ?'selected':''}>${t('week')}</option>
+                <option value="year"  ${item.period==='year' ?'selected':''}>${t('year')}</option>
+              </select>
+            </div>
+          </div>
+          <button class="delete-btn" onclick="deleteItem(${item.id})">✕</button>
+        </div>
+        <div class="who-row">
+          <button class="who-btn ${item.who==='p1'?'active-p1':''}" onclick="toggleWho(${item.id},'p1')">${escHtml(p1)}</button>
+          <button class="who-btn ${item.who==='both'?'active-both':''}" onclick="toggleWho(${item.id},'both')">${t('together')}</button>
+          <button class="who-btn ${item.who==='p2'?'active-p2':''}" onclick="toggleWho(${item.id},'p2')">${escHtml(p2)}</button>
+        </div>
+      `;
+      grpDiv.appendChild(div);
+    });
+    container.appendChild(grpDiv);
+  });
+}
+
+// ── Compute & update UI ───────────────────────────────────────────────────
+function update(){
+  const{p1,p2}=names();
+  const{r1,r2,pct1,pct2}=ratios();
+  const{i1,i2}=incomes();
+
+  const ratioEl=document.getElementById('ratio-txt');
+  const rBars=document.getElementById('ratio-bars');
+  if(i1||i2){
+    ratioEl.textContent=t('ratio',{p1,p2,pct1,pct2});
+    rBars.style.display='flex';
+    document.getElementById('rbar1').style.flex=r1;
+    document.getElementById('rbar2').style.flex=r2;
+  } else {
+    ratioEl.textContent=t('ratio-empty');
+    rBars.style.display='none';
+  }
+
+  let pays1=0,pays2=0,shared=0;
+  items.forEach(item=>{
+    const m=toMonthly(item.amount||0,item.period);
+    if(item.who==='p1') pays1+=m;
+    else if(item.who==='p2') pays2+=m;
+    else { shared+=m; pays1+=m*r1; pays2+=m*r2; }
+  });
+  const total=pays1+pays2;
+  const fair1=total*r1, fair2=total*r2;
+  const diff1=fair1-pays1, diff2=fair2-pays2;
+
+  document.getElementById('bar-p1').textContent=fmt(pays1);
+  document.getElementById('bar-p2').textContent=fmt(pays2);
+  document.getElementById('bar-total').textContent=fmt(total);
+  document.getElementById('bar-diff').textContent=fmt(Math.max(Math.abs(diff1),Math.abs(diff2)));
+  document.getElementById('sl-p1').textContent=lang==='nl'?`Bijdrage ${p1}`:`${p1}'s share`;
+  document.getElementById('sl-p2').textContent=lang==='nl'?`Bijdrage ${p2}`:`${p2}'s share`;
+  document.getElementById('sl-total').textContent=lang==='nl'?'Totaaluitgaven':'Total costs';
+  document.getElementById('sl-diff').textContent=lang==='nl'?'Verschil':'Gap';
+
+  // meter — streepje = eerlijke verhouding, vulling = werkelijkheid
+  const mf=document.getElementById('meter-fill');
+  const mc=document.getElementById('meter-center');
+  const mv=document.getElementById('meter-verdict');
+  // streepje op eerlijke positie van p1 (bv 46% → links van midden als p1 minder verdient)
+  const fairPct=Math.min(Math.max(r1*100,3),97);
+  mc.style.left=fairPct+'%';
+  if(!total){ mf.style.width='50%'; mf.style.background='rgba(255,255,255,0.15)'; mv.textContent=''; }
+  else {
+    const share=pays1/total;
+    mf.style.width=Math.min(Math.max(share*100,2),98)+'%';
+    const gap=Math.abs(share-r1);
+    if(gap<0.03){ mf.style.background='var(--sage)'; mv.textContent=T[lang].verdict.fair; mv.style.color='rgba(123,158,135,0.9)'; }
+    else if(diff1>0){ mf.style.background='var(--coral)'; mv.textContent=T[lang].verdict.low1.replace('{{p1}}',p1); mv.style.color='rgba(232,144,122,0.9)'; }
+    else { mf.style.background='#A5674A'; mv.textContent=T[lang].verdict.low2.replace('{{p2}}',p2); mv.style.color='rgba(165,103,74,0.9)'; }
+  }
+
+  document.getElementById('ml-p1').textContent=p1+' →';
+  document.getElementById('ml-p2').textContent='← '+p2;
+
+  const rb=document.getElementById('result-block');
+  const sb=document.getElementById('share-block');
+  rb.style.display=items.length?'block':'none';
+  sb.style.display=items.length?'block':'none';
+  document.getElementById('r-total').textContent=fmt(shared||total);
+  document.getElementById('r-share1').textContent=fmt(fair1);
+  document.getElementById('r-share2').textContent=fmt(fair2);
+  document.getElementById('r-pays1').textContent=fmt(pays1);
+  document.getElementById('r-pays2').textContent=fmt(pays2);
+  document.getElementById('rl-share1').textContent=t('rl-share1',{p1,pct1});
+  document.getElementById('rl-share2').textContent=t('rl-share2',{p2,pct2});
+  document.getElementById('rl-pays1').textContent=t('rl-pays1',{p1,p2});
+  document.getElementById('rl-pays2').textContent=t('rl-pays2',{p1,p2});
+
+  const underpayer=diff1>diff2?p1:p2;
+  const underpayAmt=Math.max(diff1,diff2,0);
+  const rowWarn=document.getElementById('row-warn');
+  if(underpayAmt>5){
+    rowWarn.className='result-row warn';
+    document.getElementById('rl-extra').textContent=t('rl-extra',{name:underpayer});
+    document.getElementById('r-extra').textContent=fmt(underpayAmt)+(lang==='nl'?'/mnd':'/mo');
+    document.getElementById('r-suggestion').textContent=t('suggestion',{name:underpayer,amt:fmt(underpayAmt)});
+  } else {
+    rowWarn.className='result-row ok';
+    document.getElementById('rl-extra').textContent=lang==='nl'?'✓ Verdeling is eerlijk':'✓ Split is fair';
+    document.getElementById('r-extra').textContent='';
+    document.getElementById('r-suggestion').textContent=lang==='nl'?'Geen aanpassing nodig':'No adjustment needed';
+  }
+}
+
+function updateTexts(){
+  const{p1,p2}=names();
+  ['tag','ob-title','lbl-n1','lbl-n2','lbl-i1','lbl-i2','sh-costs','res-title','rl-total','rl-suggestion','sl-total','sl-diff'].forEach(k=>{
+    const el=document.getElementById(k); if(el) el.textContent=t(k,{p1,p2});
+  });
+  const shareLbl=document.getElementById('share-lbl');
+  if(shareLbl) shareLbl.textContent=lang==='nl'?'Kopieer samenvatting':'Copy summary';
+  const acc=document.getElementById('cat-accordion');
+  const btn=document.getElementById('accordion-toggle-lbl');
+  if(btn){
+    const isOpen=acc&&acc.style.display!=='none';
+    btn.textContent=isOpen?(lang==='nl'?'Verbergen':'Hide'):(lang==='nl'?'Toevoegen':'Add');
+  }
+}
+
+function updateIntroTexts(){
+  const nl=lang==='nl';
+  const map={
+    'it-tagline': nl?'Bereken eerlijk wie wat bijdraagt — op basis van wat jullie verdienen.':'Calculate fairly who contributes what — based on what you each earn.',
+    'it-how':   nl?'Hoe werkt het?':'How does it work?',
+    'is1h': nl?'Vul jullie inkomens in':'Enter your incomes',
+    'is1p': nl?'Voer de netto maandinkomens in van beide partners. FairSplit berekent automatisch wie welk percentage draagt.':'Enter both partners\' net monthly incomes. FairSplit automatically calculates each person\'s fair share.',
+    'is2h': nl?'Voeg kostenposten toe':'Add your costs',
+    'is2p': nl?'Kies een categorie, klik op een subcategorie en de post wordt direct toegevoegd met een standaardbedrag.':'Choose a category, tap a subcategory and the item is added instantly with a suggested amount.',
+    'is3h': nl?'Kies wie betaalt':'Choose who pays',
+    'is3p': nl?'Stel per post in of het een gezamenlijke kost is, of dat één van beiden betaalt. De meter past live aan.':'Set each cost as shared, or assigned to one partner. The fairness meter updates live.',
+    'is4h': nl?'Zie het verschil':'See the gap',
+    'is4p': nl?'De eerlijkheidsmeter en samenvatting laten direct zien wie te veel of te weinig bijdraagt — en hoeveel.':'The fairness meter and summary show exactly who overpays or underpays — and by how much.',
+    'it-note-lbl': nl?'Tip:':'Tip:',
+    'it-note-txt': nl?'Alles wordt automatisch opgeslagen. Je kunt de app sluiten en later verdergaan waar je gebleven was.':'Everything saves automatically. Close the app and pick up right where you left off.',
+    'it-start': nl?'Aan de slag →':'Get started →',
+    'hb-lbl':   nl?'Uitleg':'Help',
+    'it-made':  nl?'Gemaakt door':'Made by',
+    'it-priv-lbl': nl?'🔒 Privacy:':'🔒 Privacy:',
+    'it-priv-txt': nl?'Alle gegevens blijven op jouw apparaat. Er wordt niets verstuurd of opgeslagen in de cloud. Wis je browsergeschiedenis niet, anders verdwijnen je gegevens.':'All data stays on your device. Nothing is sent or stored in the cloud. Don\'t clear your browser history or your data will be lost.',
+  };
+  Object.entries(map).forEach(([id,txt])=>{ const el=document.getElementById(id); if(el) el.textContent=txt; });
+}
+function closeIntro(){
+  document.getElementById('intro-overlay').classList.add('hidden');
+  localStorage.setItem('fairshare_seen','1');
+}
+function openIntro(){
+  document.getElementById('intro-overlay').classList.remove('hidden');
+  updateIntroTexts();
+}
+
+function shareSummary(){
+  const{p1,p2}=names();
+  const{pct1,pct2}=ratios();
+  const nl=lang==='nl';
+
+  // collect lines
+  const lines=[];
+  const{i1,i2}=incomes();
+  lines.push(`🔀 FairSplit — ${nl?'Kostenoverzicht':'Cost overview'}`);
+  lines.push('');
+  if(i1||i2){
+    lines.push(`💰 ${nl?'Inkomens':'Incomes'}`);
+    if(i1) lines.push(`  ${p1}: ${fmt(i1)}/${nl?'mnd':'mo'}`);
+    if(i2) lines.push(`  ${p2}: ${fmt(i2)}/${nl?'mnd':'mo'}`);
+    lines.push(`  ${nl?'Verdeling':'Split'}: ${p1} ${pct1}% / ${p2} ${pct2}%`);
+    lines.push('');
+  }
+
+  // items per cat
+  const groups={};
+  items.forEach(i=>{ const k=i.cat||'—'; if(!groups[k]) groups[k]=[]; groups[k].push(i); });
+  Object.entries(groups).forEach(([cat,gitems])=>{
+    lines.push(cat);
+    gitems.forEach(i=>{
+      const m=toMonthly(i.amount||0,i.period);
+      const who=i.who==='p1'?p1:i.who==='p2'?p2:(nl?'Samen':'Together');
+      lines.push(`  ${i.name}: ${fmt(m)}/${nl?'mnd':'mo'} — ${who}`);
+    });
+    lines.push('');
+  });
+
+  // totals
+  let pays1=0,pays2=0;
+  const{r1,r2}=ratios();
+  items.forEach(i=>{
+    const m=toMonthly(i.amount||0,i.period);
+    if(i.who==='p1') pays1+=m;
+    else if(i.who==='p2') pays2+=m;
+    else { pays1+=m*r1; pays2+=m*r2; }
+  });
+  const total=pays1+pays2;
+  const fair1=total*r1, fair2=total*r2;
+  const diff=Math.abs(fair1-pays1);
+  const underpayer=fair1>pays1?p1:p2;
+
+  lines.push(`📊 ${nl?'Kostenverdeling':'Cost split'}`);
+  lines.push(`  ${p1}: ${fmt(pays1)}/${nl?'mnd':'mo'} (${nl?'eerlijk':'fair'}: ${fmt(fair1)})`);
+  lines.push(`  ${p2}: ${fmt(pays2)}/${nl?'mnd':'mo'} (${nl?'eerlijk':'fair'}: ${fmt(fair2)})`);
+  if(diff>5) lines.push(`  ⚠️ ${underpayer} ${nl?'betaalt':'pays'} ${fmt(diff)}/${nl?'mnd':'mo'} ${nl?'te weinig':'too little'}`);
+  else lines.push(`  ✅ ${nl?'Verdeling is eerlijk':'Split is fair'}`);
+  lines.push('');
+  lines.push(nl?'Gemaakt met FairSplit — eerlijk delen, samen beslissen.':'Made with FairSplit — fair sharing, decided together.');
+  lines.push('https://digitaalai.gumroad.com/l/fairsplit');
+
+  const text=lines.join('\n');
+  navigator.clipboard.writeText(text).then(()=>{
+    const confirm=document.getElementById('share-confirm');
+    const lbl=document.getElementById('share-lbl');
+    const icon=document.getElementById('share-icon');
+    confirm.textContent=nl?'✓ Gekopieerd naar klembord!':'✓ Copied to clipboard!';
+    confirm.style.display='block';
+    lbl.textContent=nl?'Gekopieerd!':'Copied!';
+    icon.textContent='✓';
+    setTimeout(()=>{
+      confirm.style.display='none';
+      lbl.textContent=nl?'Kopieer samenvatting':'Copy summary';
+      icon.textContent='📋';
+    }, 2500);
+  }).catch(()=>{
+    // fallback for browsers without clipboard API
+    const ta=document.createElement('textarea');
+    ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    document.getElementById('share-confirm').textContent=lang==='nl'?'✓ Gekopieerd!':'✓ Copied!';
+    document.getElementById('share-confirm').style.display='block';
+    setTimeout(()=>document.getElementById('share-confirm').style.display='none',2500);
+  });
+}
+
+function renderAll(){
+  updateTexts();
+  updateIntroTexts();
+  renderAccordion();
+  renderItems();
+  update();
+  save();
+}
+
+loadState();
+renderAll();
+// Show intro only on first visit
+if(!localStorage.getItem('fairshare_seen')){
+  openIntro();
+} else {
+  document.getElementById('intro-overlay').classList.add('hidden');
+}
+</script>
+</body>
+</html>
